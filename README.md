@@ -1,102 +1,115 @@
 # claude-seo-skill
 
-A Claude Code skill that runs a 10-step technical SEO audit on small business websites. Type `/seo` in any project and Claude reads your HTML files, computes contrast ratios, checks your sitemap, validates schema, and outputs a prioritised report with concrete fixes.
-
-Free and open source. No paid tools required. Works on any static or server-rendered site.
+A Claude Code skill that performs a 10-step technical SEO audit on small business websites. Reads HTML files directly, computes contrast ratios, checks sitemaps, validates schema markup, and outputs a prioritised findings report with concrete fixes.
 
 ---
 
-## What it audits
+## AGENT INSTRUCTIONS
 
-| Step | Check |
-|------|-------|
-| 1 | Sitemap and robots.txt — are your pages crawlable? |
-| 2 | Title tag — 50–60 chars, keyword first |
-| 3 | Meta description — 140–155 chars, clear intent |
-| 4 | Heading hierarchy — one H1 per page, keyword included |
-| 5 | Schema / structured data — Organization, Service, LocalBusiness |
-| 6 | Internal links — orphaned pages, generic anchor text |
-| 7 | Images — missing alt text, no lazy loading |
-| 8 | Colour contrast — WCAG AA formula, opacity blending |
-| 9 | Page speed signals — render-blocking scripts, missing dimensions |
-| 10 | Search intent match — does the page actually answer the query? |
+This repository contains a single Claude Code skill. The canonical file is `SKILL.md`. Everything below describes how to install, invoke, and extend it.
 
-Findings are output as **Critical / High / Medium / Low** with a concrete fix for each.
-
----
-
-## Install
-
-**Requirements:** [Claude Code](https://claude.ai/code) installed and authenticated.
-
-1. Create the skills directory if it doesn't exist:
-   ```bash
-   mkdir -p ~/.claude/skills/seo
-   ```
-
-2. Download the skill file:
-   ```bash
-   curl -o ~/.claude/skills/seo/SKILL.md \
-     https://raw.githubusercontent.com/tradewithmeai/claude-seo-skill/main/SKILL.md
-   ```
-
-3. In any Claude Code session, type:
-   ```
-   /seo
-   ```
-
-That's it. Claude will ask which pages to audit, or you can specify them directly: `/seo run audit on index.html and about.html`.
-
----
-
-## Example output
+### Repository structure
 
 ```
-## SEO Audit: homepage (index.html)
-**Primary keyword target**: "plumber in Bristol"
+claude-seo-skill/
+├── SKILL.md       ← The skill. Install this file. Do not modify for per-project use.
+├── CLAUDE.md      ← Instructions for agents working inside this repo (contributors).
+└── README.md      ← This file.
+```
 
-### Critical (fix before anything else)
-- No sitemap.xml found — Google is discovering your pages by luck, not by design.
-  Fix: create sitemap.xml listing all public pages and add Sitemap: directive to robots.txt.
+### Install path
 
-### High (fix this week)
-- Title is 72 chars and truncated in Google SERPs — "Joe Smith Plumbing — Emergency Plumber Bristol Certified Gas Safe"
-  Fix: shorten to "Emergency Plumber Bristol | Joe Smith" (38 chars, keyword first).
-- Meta description missing on services.html
-  Fix: add <meta name="description" content="..."> (140–155 chars, include location and CTA).
+```
+~/.claude/skills/seo/SKILL.md
+```
 
-### Medium (fix this month)
-- No schema markup found
-  Fix: add LocalBusiness schema to homepage (template in SKILL.md).
+This is the global Claude Code skills directory. Skills installed here are available in every project via `/seo`.
 
+### Invocation
+
+```
+/seo
+```
+
+Or with arguments:
+
+```
+/seo run audit on index.html and services.html
+/seo audit all pages
+/seo check contrast on homepage
+```
+
+### Capability declaration
+
+| Capability | Input | Output |
+|---|---|---|
+| Full 10-step audit | HTML file path(s) or glob | Prioritised findings report (Critical / High / Medium / Low) |
+| Single-step audit | Step name + HTML path | Focused findings for that step only |
+| Direct fix | Authorisation phrase + findings | Edited HTML files with stated changes |
+| Sitemap generation | List of public page URLs | Valid sitemap.xml |
+| Schema injection | Page type + business details | `<script type="application/ld+json">` block |
+| Contrast check | CSS colour values (hex/rgba + opacity) | Pass/fail ratio with fix suggestion |
+
+### Audit steps (summary)
+
+```
+1  Crawlability   — sitemap.xml, robots.txt, page listed, Googlebot not blocked
+2  Title tag      — 50–60 chars, keyword-first, brand at end
+3  Meta desc      — 140–155 chars, intent match, soft CTA
+4  Headings       — exactly one H1 per page, keyword present, no skipped levels
+5  Schema         — Organization / Service / LocalBusiness / Person; no fabricated fields
+6  Internal links — orphaned pages, descriptive anchor text
+7  Images         — alt text on content images, loading="lazy" below fold
+8  Contrast       — WCAG AA formula + opacity blending; thresholds 4.5:1 / 3:1
+9  Page speed     — render-blocking scripts, missing image dimensions, font preconnect
+10 Intent match   — primary keyword stated; content answers the query
+```
+
+### Output contract
+
+Every audit produces output in this exact structure:
+
+```
+## SEO Audit: [page name] ([file path])
+**Primary keyword target**: [phrase]
+
+### Critical
+- [finding] — [why] — Fix: [action]
+
+### High
+### Medium
+### Low / Nice to have
 ### Already good
-- H1 present and contains primary keyword on all pages checked.
-- All images have alt text.
-- robots.txt present, Googlebot not blocked.
 ```
+
+Sections with zero findings are omitted.
+
+### Editing rules (enforced when authorised to edit)
+
+1. No keyword stuffing.
+2. No fabricated schema fields (awards, ratings, employee counts, accreditations).
+3. No invented E-E-A-T signals (qualifications, years of experience, client counts).
+4. Title and meta edits only — no body copy rewrites without explicit approval.
+5. State each change and its reason before editing.
+6. Do not alter HTML structure, class names, or JS when fixing meta/schema.
 
 ---
 
 ## Contributing
 
-Found a check that should be in the skill? Improved the contrast formula? Spotted a pattern specific to a platform (WordPress, Squarespace, Framer)?
+Contributions are improvements to `SKILL.md`. A valid contribution is one of:
 
-- **Raise an issue** to suggest a new check or report a false positive
-- **Open a PR** against `SKILL.md` with your improvement
-- **Share your audit findings** — if you ran this on your site and found something the skill missed, that's the most valuable contribution
+- A new audit check with: name, how to detect from source, pass/fail criteria, output format, fix template
+- An improvement to an existing check: more precise detection logic, better fix template, reduced false positives
+- A new schema template: must use only verifiable fields, no fabricated data
+- A platform-specific appendix: WordPress, Squarespace, Framer, etc.
 
-The skill gets better with real-world use cases. All contributions welcome.
+See `CLAUDE.md` for the contribution workflow an agent should follow when working inside this repo.
 
 ---
 
 ## Background
 
-This skill was written for [solvX.uk](https://solvx.uk) as part of a public SEO experiment — fixing a site's search visibility from scratch and documenting every step. The full case study, with live traffic data, is at [solvx.uk/seo-lab.html](https://solvx.uk/seo-lab.html).
+Built for [solvX.uk](https://solvx.uk) as part of a public SEO experiment documented at [solvx.uk/seo-lab.html](https://solvx.uk/seo-lab.html). Generalised here for any small business site.
 
-The skill is generalised here so anyone can use it on their own site.
-
----
-
-## Licence
-
-MIT — use it, fork it, improve it.
+MIT licence.
